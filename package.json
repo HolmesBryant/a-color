@@ -1,0 +1,36 @@
+{
+  "name": "a-color",
+  "description": "A custom element that displays an html color input capable of converting css colorspaces to/from hex",
+  "version": "1.0.0",
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "main": "./dist/a-color.min.js",
+  "module": "./dist/a-color.min.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HolmesBryant/a-color.git"
+  },
+  "keywords": [
+    "module",
+    "component"
+  ],
+  "exports": {
+    ".": "./dist/a-color.min.js",
+    "./src/a-color.js": "./src/a-color.js"
+  },
+  "files": ["dist", "src" ],
+  "bugs": {
+    "url": "https://github.com/HolmesBryant/a-color/issues"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "vite"
+  },
+  "author": "Holmes Bryant <webmaastaa@gmail.com>",
+  "homepage": "https://github.com/HolmesBryant/a-color",
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "rollup": "^2.79.2",
+    "vite": "^6.4.1"
+  }
+}
