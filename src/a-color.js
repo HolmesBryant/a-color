@@ -63,14 +63,6 @@ class AColor extends HTMLElement {
    */
   #input;
 
-  /**
-   * Tracks the format of the initial value to maintain consistency if colorspace is not set.
-   * @private
-   * @type {string}
-   * @default 'hex'
-   */
-  #originalFormat = 'hex';
-
   // --- Static Public Properties ---
 
   static formAssociated = true;
