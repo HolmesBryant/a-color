@@ -24,8 +24,15 @@ Demo: [https://holmesbryant.github.io/a-color/](https://holmesbryant.github.io/a
 Import the component into your JavaScript bundle or HTML file.
 
 ```javaScript
+// javascript
 import './a-color.min.js';
 ```
+
+```html
+<!-- html -->
+<script type="module" src="a-color.min.js"></script>
+```
+
 ## Usage
 
 ### Basic Example
@@ -73,7 +80,6 @@ The native color input fires input events continuously while dragging the mouse.
 |   :--------   |   :-------    |   :-----  |   :------  |  :----------
 |   value       |   value       |   string  |   undefined|  The current color value. Can be set to any valid CSS color string (hex, rgb, named, etc.)|
 |   colorspace  |   colorspace  |   string  |   undefined|  The target output format (e.g., 'hex', 'rgb', 'hsl', 'oklch'). If unset, output matches the format of the initial value.|
-
 |   defer       |   defer       |   boolean |   false    |  If present, the input event is suppressed. Only change events will update the state.
 
 ### Events
