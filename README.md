@@ -1,43 +1,89 @@
-# Title
+# a-color
 
-A web component that ...
+A modern, lightweight Web Component that supercharges the native HTML `<input type="color">`.
+While the standard browser color input is limited to Hex codes, `<a-color>` adds support for modern color spaces (RGB, HSL, OKLCH, etc.), smart format detection, and event throttling for performance.
 
-Demo: [https://holmesbryant.github.io/[REPO-NAME]/](https://holmesbryant.github.io/[REPO-NAME]/)
+Demo: [https://holmesbryant.github.io/a-color/](https://holmesbryant.github.io/a-color/)
 
-## Features
-- feature
+** Features
 
+* **Format Aware:** Automatically detects and preserves input formats (e.g., passing rgb(0,0,0) results in an RGB output).
+
+* **Color Space Conversion:** Force output to a specific format (e.g., always emit oklch) regardless of user input.
+
+* **Performance Mode (defer):** Optional attribute to suppress high-frequency events during dragging, firing only when the user commits a choice.
+
+* **Zero Dependencies**
+
+## Change Log
+
+- v1.0.0 : Initial commit
+
+## Installation
+
+Import the component into your JavaScript bundle or HTML file.
+
+```javaScript
+import './a-color.min.js';
+```
 ## Usage
 
-Include the script tag in your HTTML page.
+### Basic Example
 
-    <script type="module" src="[FILE-NAME]"></script>
+Behaves like a standard color input, but accepts any valid CSS color string.
 
-Include the tag in the body, and include your content.
+```html
+<!-- Initialize with a named color -->
+<a-color value="crimson"></a-color>
 
-    <CUSTOM-ELEMENT>
-        ...
-    </CUSTOM-ELEMENT>
+<!-- Initialize with RGB -->
+<a-color value="rgb(255, 0, 0)"></a-color>
+```
 
-## Attributes
-- **attr** REQUIRED|OPTIONAL
-    - Description
-    - Acceptable values: []
+### Enforcing a Color Space
 
-## CSS Custom Properties
+By default, the component emits values in the same format it was initialized with. You can force a specific output format using the colorspace attribute.
 
-This component exposes several custom css properties which affect the appearance of the icon. You must set these properties on the (HTML) element.
+```html
+<!-- User sees a color picker, but the output value will always be HSL -->
+<a-color colorspace="hsl" value="#ff0000"></a-color>
 
-    /* Example */
+<script>
+  const picker = document.querySelector('a-color');
+  picker.addEventListener('input', (e) => {
+    console.log(picker.value); // Output: "hsl(0, 100%, 50%)"
+  });
+</script>
+```
+
+### Deferring Events (Performance)
+
+The native color input fires input events continuously while dragging the mouse. If this triggers expensive updates (like WebGL rendering or network requests), add the 'defer' attribute.
+
+```html
+<!-- Only updates when the user releases the mouse or closes the picker -->
+<a-color defer value="#00ff00"></a-color>
+```
+
+## API Reference
+
+### Attributes & Properties
+
+|   Attribute   |   Property    |   Type    |   Default  |  Description |
+|   :--------   |   :-------    |   :-----  |   :------  |  :----------
+|   value       |   value       |   string  |   undefined|  The current color value. Can be set to any valid CSS color string (hex, rgb, named, etc.)|
+|   colorspace  |   colorspace  |   string  |   undefined|  The target output format (e.g., 'hex', 'rgb', 'hsl', 'oklch'). If unset, output matches the format of the initial value.|
+
+|   defer       |   defer       |   boolean |   false    |  If present, the input event is suppressed. Only change events will update the state.
+
+### Events
+
+|   Event Name  |   Description                                                                                 |
+|   :---------  |   :------------------------------------------------------------------------------------------ |
+|   input       |   Fired continuously as the user drags the color selector. (Suppressed if defer is true).     |
+|   change      |   Fired when the user commits a selection (closes the picker or releases the mouse handle).   |
 
 
-- **--property:**
-    - Description
-    - Acceptable Values: []
+## Browser Support
 
-## Examples
-
-### Example One
-
-
-## Special Note
+Works in all modern browsers supporting Web Components (Custom Elements v1) and Shadow DOM.

@@ -5,10 +5,200 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>A-Color Custom Element</title>
 
-	<script type="module" src="src/a-color.js"></script>
+	<!-- <script type="module" src="src/a-color.js"></script> -->
+	<script type="module" src="dist/a-color.min.js"></script>
+
+	<script type="module" src="extra/a-markdown.min.js"></script>
+	<script type="module" src="extra/a-bind.min.js"></script>
+	<script type="module" src="extra/a-code.min.js"></script>
+
+	<link rel="stylesheet" href="extra/styles.css">
+	<link rel="stylesheet" href="extra/a-markdown.css">
+	<link rel="stylesheet" href="dist/a-color.css">
+	<link rel="stylesheet" href="extra/a-code.css">
+
+	<style>
+		#demo-value-text {
+			color: white;
+			mix-blend-mode: difference;
+		}
+	</style>
 </head>
 <body>
 	<h1>A-Color Custom Element</h1>
-	<a-color value="green"></a-color>
+	<p>A custom color picker component that extends the native input type="color". It supports various color spaces (RGB, HSL, OKLCH, etc.) and event throttling.</p>
+	<p>
+		<a href="https://github.com/HolmesBryant/a-color">Github Repo</a> |
+		<a href="tests/index.html" target="_blank">tests</a>
+	</p>
+
+	<details id="readme">
+		<summary>README</summary>
+		<a-markdown file="README.md"></a-markdown>
+	</details>
+
+	<h2>Demo</h2>
+
+	<section class="flex stretch center">
+		<a-bindgroup model="#demo" class="flex stretch center">
+			<div class="card flex column">
+				<label for="demo-colorspace">
+					colorspace
+				</label>
+
+				<a-bind property="colorspace">
+					<select id="demo-colorspace">
+						<option>hex</option>
+						<option>rgb</option>
+						<option>hsl</option>
+						<option>hwb</option>
+						<option>lch</option>
+						<option>oklch</option>
+						<option>name</option>
+					</select>
+				</a-bind>
+			</div>
+
+			<div class="card flex">
+				<fieldset class="flex">
+					<legend>defer</legend>
+
+					<div class="flex">
+						<a-bind property="defer">
+							<input
+								type="radio"
+								name="demo-defer"
+								id="demo-defer-true"
+								value="true">
+						</a-bind>
+
+						<label for="demo-defer-true">
+							true
+						</label>
+					</div>
+
+					<div class="flex">
+						<a-bind property="defer">
+							<input
+								type="radio"
+								name="demo-defer"
+								id="demo-defer-false"
+								value="false">
+						</a-bind>
+
+						<label for="demo-defer-false">
+							false
+						</label>
+					</div>
+				</fieldset>
+			</div>
+
+			<div class="card flex column">
+				<label for="demo-value-text">
+					value
+				</label>
+
+				<a-bind
+					property="value"
+					elem-attr="value,
+					style.background"
+					style="flex:1">
+					<div
+						id="demo-value"
+						class="flex center">
+
+						<a-bind
+							property="value">
+							<output
+								id="demo-value-text">
+								...
+							</output>
+						</a-bind>
+					</div>
+				</a-bind>
+
+				<a-bind property="value">
+					<select id="named-colors">
+					  <option value="papayawhip">PapayaWhip</option>
+					  <option value="rebeccapurple">RebeccaPurple</option>
+					  <option value="lemonchiffon">LemonChiffon</option>
+					  <option value="chartreuse">Chartreuse</option>
+					  <option value="burlywood">BurlyWood</option>
+					</select>
+				</a-bind>
+			</div>
+		</a-bindgroup>
+
+		<div class="card flex column">
+			<label for="demo">
+				&lt;a-color>
+			</label>
+			<a-color id="demo" value="MediumAquaMarine" colorspace="name"></a-color>
+		</div>
+	</section>
+
+	<h2>Examples</h2>
+	<section>
+		<h3>Predefine Color</h3>
+
+		<div class="card">
+			<h4>Named Color</h4>
+			<a-code highlight>
+				<textarea>
+					<a-color value="lime">
+					</a-color>
+				</textarea>
+			</a-code>
+		</div>
+
+		<div class="card">
+			<h4>RGB Color</h4>
+			<a-code highlight>
+				<textarea>
+					<a-color
+						value="rgb(68, 153, 218)">
+					</a-color>
+				</textarea>
+			</a-code>
+		</div>
+	</section>
+
+	<section>
+		<h3>Predefine Color Space</h3>
+
+		<div class="card">
+			<h4>RGB Colorspace</h4>
+			<a-code highlight>
+				<textarea>
+					<a-color
+						colorspace="rgb">
+					</a-color>
+				</textarea>
+			</a-code>
+		</div>
+
+		<div class="card">
+			<h4>HSL Colorspace</h4>
+			<a-code highlight>
+				<textarea>
+					<a-color
+						colorspace="hsl">
+					</a-color>
+				</textarea>
+			</a-code>
+		</div>
+	</section>
+
+	<section>
+		<h3>Defer Updates until color is selected or color picker closes</h3>
+		<div class="card">
+			<a-code highlight>
+				<textarea>
+					<a-color defer>
+					</a-color>
+				</textarea>
+			</a-code>
+		</div>
+	</section>
 </body>
 </html>
