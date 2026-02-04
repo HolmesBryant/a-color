@@ -9,7 +9,7 @@ import '../src/a-color.js';
 const runner = new ATestRunner(import.meta.url);
 runner.output = 'a-testrunner';
 
-const {group, test, equal, wait, spyOn, genCombos } = runner;
+const {group, test, equal, wait, when, spyOn, genCombos } = runner;
 
 // Helper to create a fresh element for each test
 function createFixture(attributes = {}) {
@@ -142,7 +142,7 @@ group("User Interaction & Events", () => {
         // Simulate user picking a color internally
         input.value = "#00ff00";
         input.dispatchEvent(new Event('input', { bubbles: true }));
-
+        await when(capturedVal !== null);
         return capturedVal;
     }, "#00ff00");
 
@@ -152,7 +152,7 @@ group("User Interaction & Events", () => {
 
         input.value = "#000000";
         input.dispatchEvent(new Event('input', { bubbles: true }));
-
+        await when(el.getAttribute('value'));
         return el.getAttribute('value');
     }, "#000000");
 

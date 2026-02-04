@@ -18,9 +18,8 @@
 	<link rel="stylesheet" href="extra/a-code.css">
 
 	<style>
-		#demo-value-text {
-			color: white;
-			mix-blend-mode: difference;
+		#demo-output {
+			color: #708090;
 		}
 	</style>
 </head>
@@ -41,6 +40,29 @@
 
 	<section class="flex stretch center">
 		<a-bindgroup model="#demo" class="flex stretch center">
+
+			<!-- component -->
+			<div class="card flex column">
+				<label for="demo">
+					&lt;a-color>
+				</label>
+
+				<a-color
+					id="demo"
+					value="AquaMarine"
+					colorspace="name">
+				</a-color>
+
+				<!-- output -->
+				<a-bind
+					property="value"
+					elem-attr="value, style.background">
+
+					<output id="demo-output"></output>
+				</a-bind>
+			</div>
+
+			<!-- color space -->
 			<div class="card flex column">
 				<label for="demo-colorspace">
 					colorspace
@@ -54,11 +76,28 @@
 						<option>hwb</option>
 						<option>lch</option>
 						<option>oklch</option>
-						<option>name</option>
 					</select>
 				</a-bind>
 			</div>
 
+			<!-- named colors -->
+			<div class="card flex column">
+				<label for="named-colors">
+					Named Colors
+				</label>
+
+				<a-bind property="value">
+					<select id="named-colors">
+					  <option value="papayawhip">PapayaWhip</option>
+					  <option value="rebeccapurple">RebeccaPurple</option>
+					  <option value="lemonchiffon">LemonChiffon</option>
+					  <option value="chartreuse">Chartreuse</option>
+					  <option value="burlywood">BurlyWood</option>
+					</select>
+				</a-bind>
+			</div>
+
+			<!-- defer -->
 			<div class="card flex">
 				<fieldset class="flex">
 					<legend>defer</legend>
@@ -92,49 +131,7 @@
 					</div>
 				</fieldset>
 			</div>
-
-			<div class="card flex column">
-				<label for="demo-value-text">
-					value
-				</label>
-
-				<a-bind
-					property="value"
-					elem-attr="value,
-					style.background"
-					style="flex:1">
-					<div
-						id="demo-value"
-						class="flex center">
-
-						<a-bind
-							property="value">
-							<output
-								id="demo-value-text">
-								...
-							</output>
-						</a-bind>
-					</div>
-				</a-bind>
-
-				<a-bind property="value">
-					<select id="named-colors">
-					  <option value="papayawhip">PapayaWhip</option>
-					  <option value="rebeccapurple">RebeccaPurple</option>
-					  <option value="lemonchiffon">LemonChiffon</option>
-					  <option value="chartreuse">Chartreuse</option>
-					  <option value="burlywood">BurlyWood</option>
-					</select>
-				</a-bind>
-			</div>
 		</a-bindgroup>
-
-		<div class="card flex column">
-			<label for="demo">
-				&lt;a-color>
-			</label>
-			<a-color id="demo" value="MediumAquaMarine" colorspace="name"></a-color>
-		</div>
 	</section>
 
 	<h2>Examples</h2>

@@ -15,10 +15,6 @@ Demo: [https://holmesbryant.github.io/a-color/](https://holmesbryant.github.io/a
 
 * **Zero Dependencies**
 
-## Change Log
-
-- v1.0.0 : Initial commit
-
 ## Installation
 
 Import the component into your JavaScript bundle or HTML file.
@@ -93,3 +89,9 @@ The native color input fires input events continuously while dragging the mouse.
 ## Browser Support
 
 Works in all modern browsers supporting Web Components (Custom Elements v1) and Shadow DOM.
+
+## Change Log
+
+- v1.0.1 : Implemented requestAnmationFrame() on non-deferred updates to prevent layout thrashing.
+
+- v1.0.0 : WooHoo!

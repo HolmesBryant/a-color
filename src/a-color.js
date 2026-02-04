@@ -4,7 +4,7 @@
  * Supports various color spaces (RGB, HSL, OKLCH, etc.) and event throttling.
  * @author Holmes Bryant <https://github.com/HolmesBryant>
  * @license GPL-3.0
- * @version 1.0.0
+ * @version 1.0.1
  */
 
 import { toHex, hexTo } from './color-conversion.js';
@@ -62,6 +62,13 @@ class AColor extends HTMLElement {
    * @type {HTMLInputElement}
    */
   #input;
+
+  /**
+   * reference to latest requestAnimationFrame()
+   * @private
+   * @type {Number}
+   */
+  #rafId;
 
   // --- Static Public Properties ---
 
@@ -222,11 +229,21 @@ class AColor extends HTMLElement {
   #handleInputInput(event) {
     if (this.defer) return;
     const newHex = event.target.value;
-    const targetFormat = this.#colorspace || this.#detectFormat(this.#value) || 'hex';
-    const convertedValue = hexTo(newHex, targetFormat);
-    this.value = convertedValue;
-    this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    // Cancel any pending frame so only the latest input is processed
+    if (this.#rafId) cancelAnimationFrame(this.#rafId);
+
+    this.#rafId = requestAnimationFrame(() => {
+      const targetFormat = this.#colorspace || this.#detectFormat(this.#value) || 'hex';
+      const convertedValue = hexTo(newHex, targetFormat);
+      this.value = convertedValue;
+      this.dispatchEvent(
+        new Event('input', { bubbles: true, composed: true })
+      );
+
+      this.#rafId = null;
+    });
   }
+
 
   /**
    * Handles the 'change' event from the internal color picker (commit/release).

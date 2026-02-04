@@ -2,4 +2,5 @@ a-color {}
 
 a-color::part(input) {
 	border-radius: 2px;
+	cursor: pointer;
 }
