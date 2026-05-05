@@ -92,6 +92,10 @@ Works in all modern browsers supporting Web Components (Custom Elements v1) and 
 
 ## Change Log
 
+- v1.1
+  - Improved error handling.
+  - Fix bug where 'defer' wasn't deferring updates.
+
 - v1.0.1 : Implemented requestAnmationFrame() on non-deferred updates to prevent layout thrashing.
 
 - v1.0.0 : WooHoo!

@@ -2,7 +2,6 @@
  * @file color-conversion.js
  * A set of functions to convert various css color values to hex and back.
  * @author Holmes Bryant <Holmes Bryant <https://github.com/HolmesBryant>
- * @version 2.0.0
  * @license GPL-3.0
  */
 
@@ -333,7 +332,7 @@ function hexToOklch(hex) {
  * Supports various color spaces (RGB, HSL, OKLCH, etc.) and event throttling.
  * @author Holmes Bryant <https://github.com/HolmesBryant>
  * @license GPL-3.0
- * @version 1.0.1
+ * @version 1.1
  */
 
 /**
@@ -464,7 +463,7 @@ class AColor extends HTMLElement {
             }
           }
         } catch (error) {
-          console.warn('Conversion failed during colorspace change', error);
+          console.warn('Conversion failed during colorspace change', error, this);
         }
       }
     } else if (attr === 'value') {
@@ -472,6 +471,8 @@ class AColor extends HTMLElement {
       if (validHex) {
         this.#value = newval;
         this.#updateInputValue(newval);
+      } else {
+        console.error("Error converting color.", this);
       }
     } else if (attr === 'defer') {
       this.#defer = newval !== 'false' && newval !== null;
@@ -494,12 +495,18 @@ class AColor extends HTMLElement {
     }
 
     this.#input = this.shadowRoot.querySelector('input');
+
     if (this.hasAttribute('value')) {
       this.#updateInputValue(this.getAttribute('value'));
     }
 
-    this.#input.addEventListener('input', this.#handleInputInput.bind(this), { signal });
-    this.#input.addEventListener('change', this.#handleInputChange.bind(this), { signal });
+    this.#input.addEventListener('input', event => {
+      this.#handleInputInput(event);
+    }, { signal });
+
+    this.#input.addEventListener('change', event => {
+      this.#handleInputChange(event);}
+      , { signal });
   }
 
   /**
@@ -554,7 +561,7 @@ class AColor extends HTMLElement {
    * @param {Event} event - The DOM input event.
    */
   #handleInputInput(event) {
-    if (this.defer) return;
+    if (this.#defer) return;
     const newHex = event.target.value;
     // Cancel any pending frame so only the latest input is processed
     if (this.#rafId) cancelAnimationFrame(this.#rafId);
@@ -619,7 +626,7 @@ class AColor extends HTMLElement {
         this.#input.value = hex;
       }
     } catch (error) {
-      console.warn('Invalid color value. Keeping old value', error);
+      console.warn('Invalid color value. Keeping old value', error, this);
     }
   }
 

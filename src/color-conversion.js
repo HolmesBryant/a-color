@@ -2,7 +2,6 @@
  * @file color-conversion.js
  * A set of functions to convert various css color values to hex and back.
  * @author Holmes Bryant <Holmes Bryant <https://github.com/HolmesBryant>
- * @version 2.0.0
  * @license GPL-3.0
  */
 

@@ -1,7 +1,7 @@
 {
   "name": "a-color",
   "description": "A custom element that displays an html color input capable of converting css colorspaces to/from hex",
-  "version": "1.0.0",
+  "version": "1.1",
   "license": "GPL-3.0-or-later",
   "type": "module",
   "main": "./dist/a-color.min.js",
