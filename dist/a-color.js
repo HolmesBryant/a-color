@@ -3,6 +3,7 @@
  * A set of functions to convert various css color values to hex and back.
  * @author Holmes Bryant <Holmes Bryant <https://github.com/HolmesBryant>
  * @license GPL-3.0
+ * @version 1.5
  */
 
 const COLOR_NAMES = {
@@ -175,9 +176,9 @@ function lchToHex(value) {
   z = 108.883 * cube(z);
 
   // XYZ to RGB
-  let r = x * 0.032406 + y * -0.015372 + z * -0.004986;
-  let g = x * -0.009689 + y * 0.018758 + z * 0.000415;
-  let bl = x * 0.000557 + y * -0.002040 + z * 0.010570;
+  let r = x * 0.032406 + y * -0.015372 + z * -4986e-6;
+  let g = x * -9689e-6 + y * 0.018758 + z * 0.000415;
+  let bl = x * 0.000557 + y * -204e-5 + z * 0.010570;
 
   const gamma = v => (v <= 0.0031308) ? 12.92 * v : 1.055 * Math.pow(v, 1/2.4) - 0.055;
   return `#${toDoubleHex(clamp(gamma(r)))}${toDoubleHex(clamp(gamma(g)))}${toDoubleHex(clamp(gamma(bl)))}`;
@@ -332,8 +333,11 @@ function hexToOklch(hex) {
  * Supports various color spaces (RGB, HSL, OKLCH, etc.) and event throttling.
  * @author Holmes Bryant <https://github.com/HolmesBryant>
  * @license GPL-3.0
- * @version 1.1
+ * @version 1.5
  */
+
+
+const abindUpdate = Symbol.for('abind.update');
 
 /**
  * A custom element that wraps a native `<input type="color">`.
@@ -448,16 +452,16 @@ class AColor extends HTMLElement {
   attributeChangedCallback(attr, oldval, newval) {
     if (oldval === newval) return;
 
-    if (attr === 'colorspace') {
+    switch (attr) {
+    case 'colorspace':
       this.#colorspace = newval;
 
-      // Attempt to convert current value to new colorspace immediatey
       if (this.#value) {
         try {
           const currentHex = toHex(this.#value);
           if (currentHex) {
             const converted = hexTo(currentHex, newval);
-            // Prevent recursion: only update if the string representation actually changes
+            // prevent recursion
             if (converted !== this.#value) {
               this.value = converted;
             }
@@ -466,7 +470,13 @@ class AColor extends HTMLElement {
           console.warn('Conversion failed during colorspace change', error, this);
         }
       }
-    } else if (attr === 'value') {
+      break;
+
+    case 'defer':
+      this.#defer = this.hasAttribute('defer');
+      break;
+
+    case 'value':
       const validHex = toHex(newval);
       if (validHex) {
         this.#value = newval;
@@ -474,11 +484,10 @@ class AColor extends HTMLElement {
       } else {
         console.error("Error converting color.", this);
       }
-    } else if (attr === 'defer') {
-      this.#defer = newval !== 'false' && newval !== null;
+      break;
     }
 
-    window.abind?.update?.(this, attr, newval);
+    globalThis[abindUpdate]?.(this, attr, this[attr]);
   }
 
   /**
@@ -501,11 +510,11 @@ class AColor extends HTMLElement {
     }
 
     this.#input.addEventListener('input', event => {
-      this.#handleInputInput(event);
+      this.#handleInputEvent(event);
     }, { signal });
 
     this.#input.addEventListener('change', event => {
-      this.#handleInputChange(event);}
+      this.#handleChangeEvent(event);}
       , { signal });
   }
 
@@ -560,7 +569,7 @@ class AColor extends HTMLElement {
    * @private
    * @param {Event} event - The DOM input event.
    */
-  #handleInputInput(event) {
+  #handleInputEvent(event) {
     if (this.#defer) return;
     const newHex = event.target.value;
     // Cancel any pending frame so only the latest input is processed
@@ -586,7 +595,7 @@ class AColor extends HTMLElement {
    * @private
    * @param {Event} event - The DOM change event.
    */
-  #handleInputChange(event) {
+  #handleChangeEvent(event) {
     const newHex = event.target.value;
     const targetFormat = this.#colorspace || this.#detectFormat(this.#value) || 'hex';
     const convertedValue = hexTo(newHex, targetFormat);

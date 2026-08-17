@@ -1,7 +1,7 @@
 # a-color
 
 A modern, lightweight Web Component that supercharges the native HTML `<input type="color">`.
-While the standard browser color input is limited to Hex codes, `<a-color>` adds support for modern color spaces (RGB, HSL, OKLCH, etc.), smart format detection, and event throttling for performance.
+While the standard browser color input is limited to Hex codes, `<a-color>` adds support for modern color spaces (rgb, hsl, hwb, lch, oklch), smart format detection, and event throttling for performance.
 
 Demo: [https://holmesbryant.github.io/a-color/](https://holmesbryant.github.io/a-color/)
 
@@ -13,16 +13,13 @@ Demo: [https://holmesbryant.github.io/a-color/](https://holmesbryant.github.io/a
 
 * **Performance Mode (defer):** Optional attribute to suppress high-frequency events during dragging, firing only when the user commits a choice.
 
+* **Seamless Form Integration** Impliments the ElementInternals API for seamless form integration.
+
 * **Zero Dependencies**
 
 ## Installation
 
 Import the component into your JavaScript bundle or HTML file.
-
-```javaScript
-// javascript
-import './a-color.min.js';
-```
 
 ```html
 <!-- html -->
@@ -37,7 +34,7 @@ Behaves like a standard color input, but accepts any valid CSS color string.
 
 ```html
 <!-- Initialize with a named color -->
-<a-color value="crimson"></a-color>
+<a-color value="lemonchiffon"></a-color>
 
 <!-- Initialize with RGB -->
 <a-color value="rgb(255, 0, 0)"></a-color>
@@ -72,11 +69,81 @@ The native color input fires input events continuously while dragging the mouse.
 
 ### Attributes & Properties
 
-|   Attribute   |   Property    |   Type    |   Default  |  Description |
-|   :--------   |   :-------    |   :-----  |   :------  |  :----------
-|   value       |   value       |   string  |   undefined|  The current color value. Can be set to any valid CSS color string (hex, rgb, named, etc.)|
-|   colorspace  |   colorspace  |   string  |   undefined|  The target output format (e.g., 'hex', 'rgb', 'hsl', 'oklch'). If unset, output matches the format of the initial value.|
-|   defer       |   defer       |   boolean |   false    |  If present, the input event is suppressed. Only change events will update the state.
+#### alpha (experimental)
+
+If present (or true), indicates the color's alpha component can be manipulated by the end user and does not have to be fully opaque.
+
+Note: As of the latest commit, only Safari and WebView on iOS support this attribute.
+
+- Property name: alpha
+- Type: boolean
+- Default: false
+
+#### colorspace
+
+The target output format (e.g., 'hex', 'rgb', 'hsl', 'oklch'). If unset, output matches the format of the initial value.
+
+- Property name: colorspace
+- Type: string
+- Default: undefined
+
+#### defer
+
+If present (or true), the input event is suppressed. Only change events will update the state.
+
+- Property name: defer
+- Type: boolean
+- Default: false
+
+#### disabled
+
+If present, disables the color input.
+
+- Property name: disabled
+- Type: boolean
+- Default: false
+
+#### form
+
+The form id of the form in the HTML document with which the input should be associated.
+
+- Property name: form
+- Type: string
+- Default: null | the id of the form which is a parent of `<a-color?`.
+
+#### list
+
+The id of the datalist element with which `<a-color>` is associated. This is set automatically; you would not normally set this.
+
+In order to associate `<a-color>` with a datalist, you must include the datalist element as a child of `<a-color>`. If you dynamically change the datalist options, you must replace the whole datalist (not just the options) or the new options will not be available to the color picker.
+
+- Property name: list
+- Type: string
+- Default: undefined
+
+```html
+<a-color>
+  <datalist id="custom-colors">
+    <option>#115512</option>
+  </datalist>
+</a-color>
+```
+
+#### name
+
+The name of the input. If no name is set, a semi-random name is assigned.
+
+- Property name: name
+- Type: string
+- Default: 'a-color_' + a random string
+
+#### value
+
+The current color value. Can be set to any valid CSS color string (hex, rgb, named, etc.)
+
+- Property name: value
+- Type: string
+- Default: undefined
 
 ### Events
 
@@ -85,12 +152,15 @@ The native color input fires input events continuously while dragging the mouse.
 |   input       |   Fired continuously as the user drags the color selector. (Suppressed if defer is true).     |
 |   change      |   Fired when the user commits a selection (closes the picker or releases the mouse handle).   |
 
-
 ## Browser Support
 
 Works in all modern browsers supporting Web Components (Custom Elements v1) and Shadow DOM.
 
 ## Change Log
+
+- v1.5
+  - Made integration with a-bind independant of global `update` variable.
+  - Changed some dev dependencies
 
 - v1.1
   - Improved error handling.

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Foo</title>
+
+	<script type="module" src="src/a-color.js"></script>
+	<script type="module" src="extra/a-bind.min.js"></script>
+</head>
+<body>
+	<header>
+		<h3><a href="foo.html">Reset</a></h3>
+	</header>
+
+	<form id="form-one">
+		<a-color id="demo" name="foo" value="lime">
+			<datalist id="colors">
+        <option>#800000</option>
+        <option>#ff00ff</option>
+        <option>#115512</option>
+      </datalist>
+		</a-color>
+	</form>
+
+	<form id="form-two">
+	</form>
+
+	<hr>
+
+	<button type="submit" form="form-one">
+		Submit Form One
+	</button>
+
+	<button type="reset" form="form-one">
+		Reset Form One
+	</button>
+
+	<hr>
+
+	<button type="submit" form="form-two">
+		Submit Form Two
+	</button>
+
+	<hr>
+
+	<h3>Properties</h3>
+	<a-bind model="dom:#demo" prop="value">
+		<output>...</output>
+	</a-bind>
+
+</body>
+
+</html>

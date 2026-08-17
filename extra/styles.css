@@ -1,13 +1,14 @@
 :root {
 	--bg1-color: snow;
 	--bg2-color: linen;
-	--bg3-color: floralwhite;
+	--bg3-color: hsl(30, 66.667%, 97%);
 	--bg4-color:  white;
 	--accent-color: orange;
 	--accent-text: rgb(40,40,40);
 	--border-color: silver;
 	--text-color: dimgray;
 	--min: 35px;
+	--min-width: 180px;
 	--pad: .5rem;
 	--gap:  .25rem;
 }
@@ -29,12 +30,13 @@
 		--gap: 2px;
 	}
 
+	.button,
 	button
 	{ padding: 1px; }
 
-	.flex > * {
+	/* .flex > * {
 		min-width: 200px;
-	}
+	} */
 }
 
 body {
@@ -56,57 +58,71 @@ body {
 }
 
 /**** Backgrounds ****/
-
-	aside,
-	details,
-	section,
-  summary,
-  .bg2,
-	.card > div
-  { background: var(--bg2-color) }
-
-	button,
-	.card
-	{ background: var(--bg3-color) }
-
+	code,
 	input,
 	select,
 	textarea
-	{ background: var(--bg4-color); }
+	{ background: var(--bg1-color); }
+
+	aside,
+	details,
+	output,
+	section,
+  summary,
+  .bg2
+  { background: var(--bg2-color) }
+
+	button,
+	.button,
+	.card
+	{ background: var(--bg3-color) }
 
 	hr,
-	button.primary,
+	.button.primary,
+	button.primary
+	{ background: var(--accent-color); }
+
+  .button:hover,
   button:hover,
   summary:hover,
   details[open] > summary,
   option:checked
   { background: var(--accent-color) }
 
+  .button:active,
   button:active {
   	background: initial;
   }
 
 /**** Borders ****/
+	.button,
+	.nofrills,
 	button,
 	details,
 	input,
 	select,
 	option,
+	fieldset,
 	textarea,
 	.card
 	{ border: 1px solid var(--border-color); }
 
-	output
+	output,
+	[contenteditable]
 	{ border: 1px dashed var(--border-color); }
+
+	details:has(.nofrills)
+	{ border: none; }
 
   article,
   button,
+  .button,
   details,
-  fieldset,
   input,
   section,
   select,
   summary,
+  fieldset,
   textarea,
   .card
   { border-radius: .25rem; }
@@ -116,36 +132,46 @@ body {
   	border-bottom-right-radius: 0;
   }
 
-  .nofrills
-  { border: none }
+  .nofrills,
+  details:has(.nofrills)
+  { border-radius: 0 }
 
   [contenteditable]:hover
   { border-color: var(--accent-color); }
+
+  input:checked:disabled,
+	option:checked:disabled,
+	select:checked:disabled
+	{ outline: 1px solid var(--accent-color) }
+
+	.lime
+	{ border: 1px solid lime }
+
+	.orange
+	{ border: 1px solid orange }
+
+	.pink
+	{ border: 1px solid salmon }
 
 /**** Text ****/
 	a
 	{ color: var(--accent-color) }
 
-	button
+	button,
+	.button,
+	input,
+	select,
+	textarea
 	{ color: var(--text-color) }
 
 	button.primary,
-	input,
-	select,
-	textarea
+	.button.primary
 	{ color: var(--accent-text); }
 
-	input,
-	select,
-	option,
-	textarea
-	{ font-size: 1rem; }
-
 	button,
+	.button,
 	label,
-	legend,
-	select,
-	option
+	legend
 	{ font-weight: bold; }
 
 	summary {
@@ -158,11 +184,15 @@ body {
 
 	.nofrills {
 		font-size: 1rem;
+		font-weight: normal;
 	}
 
 /**** Cursor ****/
+	.button,
 	button,
+	label,
 	input[type="submit"],
+	input[type="reset"],
 	input[type="button"],
 	input[type="color"],
 	input[type="radio"],
@@ -172,7 +202,24 @@ body {
 	summary
 	{ cursor: pointer; }
 
+	button:disabled,
+	input:disabled,
+	option:disabled,
+	select:disabled,
+	textarea:disabled
+	{ cursor: not-allowed; }
+
 /**** Shadows ****/
+	button:hover,
+	.button:hover,
+	button:focus,
+	.button:focus
+	{ box-shadow: 2px 2px 5px black; }
+
+	button:active,
+	.button:active
+	{ box-shadow: inset 2px 2px 5px black; }
+
 	aside
 	{ box-shadow: 0 2px 5px black; }
 
@@ -180,17 +227,18 @@ body {
 	[contenteditable]
 	{ caret-color: var(--accent-color); }
 
-/**** Structure ****/
+/**** Misc ****/
 	body *
 	{ box-sizing: border-box; }
 
+	.button,
 	button
 	{ padding: .5rem; }
 
 	code
 	{ padding:  0 var(--pad); }
 
-	details#readme
+	details
 	{ overflow: auto; }
 
 	details#readme[open] {
@@ -198,11 +246,13 @@ body {
 		max-height: 80vh;
 	}
 
-	details[open] > summary {
-		margin-bottom: 1rem;
+	details[open] summary {
 		position: sticky;
 		top: 0;
 	}
+
+	details[open] > summary
+	{ margin-bottom: .5rem; }
 
 	div
 	{ align-items: center; }
@@ -210,23 +260,31 @@ body {
 	h2
 	{ margin-left: 1rem; }
 
-	header
-	{ min-height: 75px; }
+	header {
+		min-height: 75px;
+		margin-bottom: 1rem;
+	}
 
 	hr
-	{ height: 1px; }
+	{ height: 2px; }
 
+	.button,
 	button,
 	input,
 	select
-	{ min-height: var(--min); }
+	{ min-height: var(--min) }
 
+	input,
+	select
+	{ min-width: var(--min-width); }
+
+	.button,
 	button,
 	input[type="radio"],
 	input[type="checkbox"],
 	input[type="color"] {
-		min-width: var(--min);
 		margin: 0;
+		min-width: var(--min);
 	}
 
 	input:not([type="color"]),
@@ -244,10 +302,14 @@ body {
 
 	output
 	{
-		display: inline-block;
-		font-family: "Courier New" ui-monospace;
+		align-items: center;
+		display: inline-flex;
+		font-family: "Courier New", ui-monospace;
+		justify-content: center;
 		min-width: var(--min);
 		min-height: 1ch;
+		overflow-x: auto;
+		padding: 5px;
 		white-space: pre-wrap;
 	}
 
@@ -264,23 +326,24 @@ body {
 	select::-webkit-scrollbar
 	{ display: none; }
 
-	select {
-		min-width: 100px;
-	}
+	select[multiple]
+	{ padding: 0; }
 
-	select[multiple] {
-		padding: 0;
-	}
+	summary
+	{ padding: var(--pad); }
 
-	summary {
-		padding: var(--pad);
+	textarea {
+		min-height: 75px;
+		width: 100%;
 	}
-
-	textarea
-	{ min-height: var(--min); }
 
 	ul, ol
 	{ margin: 0; }
+
+	.break {
+		white-space: normal;
+		word-break: break-word;
+	}
 
 	.card {
 		min-height: 85px;
@@ -291,10 +354,17 @@ body {
     padding: var(--pad);
   }
 
+  .content
+  { padding:  var(--pad); }
+
 	.nofrills {
 		padding: 5px;
+		margin-bottom: 0;
 		min-height: unset;
 	}
+
+	.nowrap
+	{ white-space: nowrap }
 
 	.sticky {
 		position: sticky;
@@ -310,99 +380,121 @@ body {
 
 	.flex {
 		align-items: center;
-		column-gap: var(--gap);
 		display: flex;
 		flex-wrap: wrap;
+		gap: var(--gap);
 	}
+
+	.flex > label
+	{ row-gap: 0 }
 
 	.flex1
-	{ flex: 1; }
+	{ flex: 1 }
 
 	.flex2
-	{ flex: 2; }
-
-	.flex100
-	{ flex-basis: 100%; }
-
-	.flex50
-	{ flex-basis: 50%; }
-
-	.flex30
-	{ flex-basis: 30%; }
-
-	.flex25
-	{ flex-basis: 25%; }
-
-	.flex20
-	{ flex-basis: 20%; }
+	{ flex: 2 }
 
 	.flex16
-	{ flex-basis: 16%; }
+	{ flex-basis: 15% }
 
-	.column
-	{ flex-direction: column; }
+	.flex20
+	{ flex-basis: 19% }
 
-	.row { flex-direction: row; }
+	.flex25
+	{ flex-basis: 24% }
 
-	.row-reverse
-	{ flex-direction: row-reverse; }
+	.flex30
+	{ flex-basis: 29% }
 
-	.center
-	{ justify-content: center; }
+	.flex50
+	{ flex-basis: 49% }
 
-	.vcenter,
-	.middle
-	.column.center
-	{ align-items: center; }
+	.flex100
+	{ width: 100%; }
 
-	.end
-	{ justify-content: flex-end; }
+	.flex240
+	{ flex-basis: 240px }
 
-	.vend,
-	.bottom,
-	.column.end
+	.flex360
+	{ flex-basis: 360px }
+
+	.flex480
+	{ flex-basis: 480px }
+
+	.flex520
+	{ flex-basis: 520px }
+
+	.flex640
+	{ flex-basis: 640px }
+
+	.flex.column
+	{ flex-direction: column }
+
+	.flex.row
+	{ flex-direction: row }
+
+	.flex.row-reverse
+	{ flex-direction: row-reverse }
+
+	.flex.center
+	{ justify-content: center }
+
+	.flex.middle
+	{ align-items: center }
+
+	.flex.end
+	{ justify-content: end }
+
+	.flex.column.end
 	{ align-items: flex-end; }
 
-	.start
-	{ justify-content: start; }
+	.flex:not(.column).bottom
+	{ align-items: end }
 
-	.top,
-	.vstart,
-	.column.start
+	.flex.column.bottom
+	{ justify-content: end }
+
+	.flex.start
+	{ justify-content: start }
+
+	.flex.column.start
 	{ align-items: flex-start; }
 
-	.column.vstart,
-	.column.top
-	{ justify-content: flex-start; }
+	.flex:not(.column).top
+	{ align-items: start }
 
-	.stretch
-	{ align-items: stretch; }
+	.flex.column.top
+	{ justify-content: start; }
 
-	.space-between
-	{ justify-content: space-between; }
-
-	.space-around
-	{ justify-content: space-around; }
-
-	.gap0
-	{ gap: 0; }
-
-	.gap2
-	{ gap: calc(var(--gap) * 2); }
-
-	.gap3
-	{ gap: calc(var(--gap) * 3); }
-
-	.gap4
-	{ gap: calc(var(--gap) * 4); }
-
-	.nowrap {
-		flex-wrap: nowrap;
+	.flex.stretch
+	{
+		align-content: stretch;
+		align-items: stretch;
 	}
 
-	.wrap {
-		flex-wrap: wrap;
-	}
+	.flex.space-between
+	{ justify-content: space-between }
+
+	.flex.space-around
+	{ justify-content: space-around }
+
+	.flex.gap0
+	{ gap: 0 }
+
+	.flex.gap2
+	{ gap: calc(var(--gap) * 2) }
+
+	.flex.gap3
+	{ gap: calc(var(--gap) * 3) }
+
+	.flex.gap4
+	{ gap: calc(var(--gap) * 4) }
+
+	.flex.nowrap
+	{ flex-wrap: nowrap }
+
+	.flex.wrap
+	{ flex-wrap: wrap }
 
 /**** GRID ****/
 
