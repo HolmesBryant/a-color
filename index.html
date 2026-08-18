@@ -13,17 +13,25 @@
 	<script type="module" src="extra/a-menu.min.js"></script>
 	<script type="module" src="extra/a-code.min.js"></script>
 
+	<script>
+		function logSubmit(event) {
+			event.preventDefault();
+			let payload = "";
+			const output = document.getElementById('demo-output');
+			const form = event.target;
+			const data = new FormData(form);
+			for (const entry of data.entries()) {
+				payload = `${entry[0]}=${entry[1]}`;
+			}
+			output.value = payload;
+		}
+	</script>
+
 	<link rel="stylesheet" href="extra/styles.css">
 	<link rel="stylesheet" href="extra/a-markdown.css">
 	<link rel="stylesheet" href="dist/a-color.css">
 	<link rel="stylesheet" href="extra/a-menu.css">
 	<link rel="stylesheet" href="extra/a-code.css">
-
-	<style>
-		#demo-output {
-			color: #708090;
-		}
-	</style>
 </head>
 <body>
 	<h1>A-Color Custom Element</h1>
@@ -47,7 +55,6 @@
 				type="mobile"
 				show-icon=""
 				class="flex240">
-				<strong>Options</strong>
 
 				<a-menu open group="demo-menu">
 				<strong slot="label">Attributes</strong>
@@ -60,6 +67,7 @@
 
 						<a-bind prop="colormodel">
 							<select id="demo-colormodel">
+								<option value="">None</option>
 								<option>hex</option>
 								<option>rgb</option>
 								<option>hsl</option>
@@ -67,10 +75,6 @@
 								<option>lch</option>
 								<option>oklch</option>
 							</select>
-						</a-bind>
-
-						<a-bind prop="colormodel">
-							<output>...</output>
 						</a-bind>
 					</div>
 
@@ -80,7 +84,9 @@
 							defer
 						</label>
 
-						<input id="demo-defer" type="checkbox">
+						<a-bind prop="defer" elem-prop="checked">
+							<input id="demo-defer" type="checkbox">
+						</a-bind>
 					</div>
 
 					<!-- disabled -->
@@ -89,7 +95,9 @@
 							disabled
 						</label>
 
-						<input id="demo-disabled" type="checkbox">
+						<a-bind prop="disabled" elem-prop="checked">
+							<input id="demo-disabled" type="checkbox">
+						</a-bind>
 					</div>
 
 					<!-- list -->
@@ -98,7 +106,13 @@
 							list
 						</label>
 
-						<select id="demo-list"></select>
+						<a-bind prop="list">
+							<select id="demo-list">
+								<option value="">None</option>
+								<option>custom-color-chips</option>
+								<option>default-color-chips</option>
+							</select>
+						</a-bind>
 					</div>
 
 					<!-- name -->
@@ -107,12 +121,42 @@
 							name
 						</label>
 
-						<input id="demo-name">
+						<a-bind prop="name">
+							<input id="demo-name">
+						</a-bind>
 					</div>
 				</a-menu>
 
 				<a-menu group="demo-menu">
 				<strong slot="label">Values</strong>
+
+					<!-- value -->
+					<!-- <div class="flex-column">
+						<label for="demo-value">
+							value
+						</label>
+
+						<a-bind prop="value">
+							<input id="demo-value">
+						</a-bind>
+					</div> -->
+
+					<!-- hex -->
+					<div class="flex column">
+						<label for="demo-value-hex">
+							value (hex)
+						</label>
+
+						<a-bind prop="value">
+							<select id="demo-value-hex">
+								<option>#000000</option>
+								<option>#5f9ea0</option>
+								<option>#7fff00</option>
+								<option>#ff1493</option>
+								<option>#ffa07a</option>
+							</select>
+						</a-bind>
+					</div>
 
 					<!-- named colors -->
 					<div class="flex column">
@@ -214,58 +258,63 @@
 				<a-menu group="demo-menu">
 				<strong slot="label">Methods</strong>
 
-					<!-- checkValidity() -->
-					<div class="flex center">
-						<button>checkValidity()</button>
-						<output>...</output>
-					</div>
-
-					<!-- reportValidity() -->
-					<div class="flex center">
-						<button>reportValidity()</button>
-						<output>...</output>
-					</div>
-
-					<!-- setCustomValidity(str) -->
-					<div class="flex column">
-						<label for="demo-setCustomValidity">
-							setCustomValidity(str)
-						</label>
-						<input id="demo-setCustomValidity">
-						<output>...</output>
-					</div>
-
 					<!-- showPicker() -->
 					<div class="flex center">
-						<button>showPicker()</button>
+						<a-bind event="click" func="showPicker">
+							<button>showPicker()</button>
+						</a-bind>
 					</div>
 				</a-menu>
 			</a-menu>
 		</a-bindgroup>
 
-		<div class="flex1 flex column">
-			<div class="flex center">
-				<form class="card flex column">
-					<a-color id="demo" name="foo" value="chartreuse"></a-color>
+		<div class="flex1 flex column stretch">
+			<div class="flex">
+				<form class="card flex column"
+					onsubmit="logSubmit(event)">
+
+					<a-color debug id="demo" name="foo" list="">
+						<datalist id="custom-color-chips">
+							<option>#800000</option>
+			        <option>#ff00ff</option>
+			        <option>#115512</option>
+						</datalist>
+
+						<datalist id="default-color-chips"></datalist>
+					</a-color>
+
 					<button type="submit">Submit</button>
 				</form>
 
-				<div class="card flex column">
+				<a-bindgroup
+					model="dom:#demo"
+					prop="value"
+					style="display:contents">
+
+					<a-bind
+						elem-prop="style.background"
+						style="display:contents">
+						<div class="card flex1 flex column">
+							<strong>Value</strong>
+							<a-bind>
+								<output>...</output>
+							</a-bind>
+						</div>
+					</a-bind>
+				</a-bindgroup>
+
+				<div class="card flex1 flex column">
 					<strong>Submitted Data</strong>
-					<output>...</output>
+					<output id="demo-output">...</output>
 				</div>
 			</div>
 
-			<div class="card flex column">
-				<strong>Properties</strong>
-				<a-bind model="dom:#demo" prop="properties">
-					<output>...</output>
-				</a-bind>
 		</div>
 	</section>
 
 	<h2>Examples</h2>
-	<section>
+
+	<section class="flex column stretch">
 	<h3>Predefine the Color</h3>
 
 		<div class="card">
@@ -285,12 +334,13 @@
 						</a-bind>
 					</a-bindgroup>
 
-					<input type="reset">
+					<button type="reset">Reset</button>
 				</form>
 			</h4>
 
 			<a-code highlight>
 				<textarea>
+					<!-- default colormodel is "hex" -->
 					<a-color value="lime">
 					</a-color>
 				</textarea>
@@ -300,17 +350,25 @@
 		<div class="card">
 			<h4>
 				RGB Color
-				<a-color id="ex-rgb" value="rgb(68, 153, 218)"> </a-color>
-				<a-bindgroup model="dom:#ex-rgb">
-					<a-bind prop="value">
-					<a-bind prop="value" elem-prop="style.background">
-						<output>...</output>
-					</a-bind>
-					</a-bind>
-				</a-bindgroup>
+
+				<form class="flex stretch">
+					<a-color style="height:35px" id="ex-rgb" value="rgb(68, 153, 218)"> </a-color>
+
+					<a-bindgroup model="dom:#ex-rgb">
+						<a-bind prop="value">
+						<a-bind prop="value" elem-prop="style.background">
+							<output>...</output>
+						</a-bind>
+						</a-bind>
+					</a-bindgroup>
+
+					<button type="reset">Reset</button>
+				</form>
 			</h4>
+
 			<a-code highlight>
 				<textarea>
+					<!-- default colormodel is "hex" -->
 					<a-color
 						value="rgb(68, 153, 218)">
 					</a-color>
@@ -319,20 +377,26 @@
 		</div>
 	</section>
 
-	<section>
+	<section class="flex column stretch">
 	<h3>Predefine the Color Model</h3>
 
 		<div class="card">
 			<h4>
 				RGB Color Modal
-				<a-color id="ex-pre-rgb" value="orange" colormodel="rgb"></a-color>
 
-				<a-bindgroup model="dom:#ex-pre-rgb">
-					<a-bind prop="value">
-					<a-bind prop="value" elem-prop="style.background">
-						<output>...</output>
-					</a-bind>
-					</a-bind>
+				<form class="flex stretch">
+					<a-color id="ex-pre-rgb" value="orange" colormodel="rgb"></a-color>
+
+					<a-bindgroup model="dom:#ex-pre-rgb">
+						<a-bind prop="value">
+						<a-bind prop="value" elem-prop="style.background">
+							<output>...</output>
+						</a-bind>
+						</a-bind>
+					</a-bindgroup>
+
+					<button type="reset">Reset</button>
+				</form>
 			</h4>
 			<a-code highlight>
 				<textarea>
@@ -347,17 +411,21 @@
 		<div class="card">
 			<h4>
 				HSL Color Model
-				<a-color id="ex-pre-hsl" value="green" colormodel="hsl"></a-color>
-				<a-bindgroup model="dom:#ex-pre-hsl">
-					<a-bind prop="value">
-					<a-bind
-						prop="value"
-						elem-prop="style.background">
+				<form class="flex stretch">
+					<a-color id="ex-pre-hsl" value="green" colormodel="hsl"></a-color>
+					<a-bindgroup model="dom:#ex-pre-hsl">
+						<a-bind prop="value">
+						<a-bind
+							prop="value"
+							elem-prop="style.background">
 
-						<output>...</output>
-					</a-bind>
-					</a-bind>
-				</a-bindgroup>
+							<output>...</output>
+						</a-bind>
+						</a-bind>
+					</a-bindgroup>
+
+					<button type="reset">Reset</button>
+				</form>
 			</h4>
 			<a-code highlight>
 				<textarea>
@@ -370,12 +438,59 @@
 		</div>
 	</section>
 
-	<section>
-	<h3>Defer Updates until color is selected or color picker closes</h3>
+	<section class="flex column stretch">
 		<div class="card">
+		<h3>Defer Updates until color is selected or color picker closes
+			<form class="flex stretch">
+				<a-color id="ex-defer" defer></a-color>
+				<a-bindgroup model="dom:#ex-defer">
+					<a-bind prop="value">
+					<a-bind prop="value" elem-prop="style.background">
+						<output>...</output>
+					</a-bind>
+					</a-bind>
+				</a-bindgroup>
+				<button type="reset">Reset</button>
+			</form>
+		</h3>
 			<a-code highlight>
 				<textarea>
-					<a-color defer>
+					<a-color defer></a-color>
+				</textarea>
+			</a-code>
+		</div>
+
+		<div class="card">
+		<h3>Disable the Input <a-color disabled></a-color></h3>
+			<a-code highlight>
+				<textarea>
+					<a-color disabled></a-color>
+				</textarea>
+			</a-code>
+		</div>
+
+		<div class="card">
+		<h3>Associate with a datalist
+			<a-color list="custom-colors">
+				<datalist id="custom-colors">
+					<option>#5f9ea0</option>
+					<option>#7fff00</option>
+					<option>#ff1493</option>
+					<option>#ffa07a</option>
+				</datalist>
+			</a-color>
+		</h3>
+
+			<a-code highlight>
+				<textarea>
+					<a-color list="custom-colors">
+
+						<datalist id="custom-colors">
+							<option>#5f9ea0</option>
+							<option>#7fff00</option>
+							<option>#ff1493</option>
+							<option>#ffa07a</option>
+						</datalist>
 					</a-color>
 				</textarea>
 			</a-code>

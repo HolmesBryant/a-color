@@ -113,19 +113,47 @@ The form id of the form in the HTML document with which the input should be asso
 
 #### list
 
-The id of the datalist element with which `<a-color>` is associated. This is set automatically; you would not normally set this.
+The id of the datalist element with which `<a-color>` is associated.
 
-In order to associate `<a-color>` with a datalist, you must include the datalist element as a child of `<a-color>`. If you dynamically change the datalist options, you must replace the whole datalist (not just the options) or the new options will not be available to the color picker.
+In order to associate `<a-color>` with a datalist, you must include the datalist element as a child of `<a-color>`.
+
+If you dynamically change the datalist options, you must replace the whole datalist (not just the options) or the new options will not be available to the color picker.
+
+The value of each option must be a valid hexadecimal color.
 
 - Property name: list
 - Type: string
 - Default: undefined
 
+**NOTE** The result varies widely between browsers. In Chromium-based browsers, a popup appears containing a clickable color chip for each option in the datalist with a button at the bottom labeled "more options", while in Firefox the "custom colors" area of the color picker will be populated with the colors defined in the datalist.
+
 ```html
-<a-color>
+<a-color list="custom-colors">
   <datalist id="custom-colors">
     <option>#115512</option>
   </datalist>
+</a-color>
+```
+
+If you want a cross-browser way to display a browser-specific array of default color chips, include a datalist with no options.
+
+```html
+<a-color list="color-chips">
+  <datalist id="color-chips"></datalist>
+</a-color>
+```
+
+If you want to dynamically change which list a-color uses, include all datalists as children of a-select and change the value of the `list` attribute.
+
+If you want to include the option to not use a list at all, set `list="null"`
+
+```html
+<a-color list="custom-colors">
+  <datalist id="custom-colors">
+    <option>#115512</option>
+  </datalist>
+
+  <data-list id="default-colors"></data-list>
 </a-color>
 ```
 

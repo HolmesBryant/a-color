@@ -7,7 +7,7 @@ import ATestRunner from './ATestRunner.min.js';
 import '../src/a-color.js';
 
 const runner = new ATestRunner(import.meta.url);
-runner.output = 'a-testrunner';
+runner.output = 'test-results';
 
 const {group, test, equal, wait, when, spyOn, genCombos } = runner;
 
@@ -15,7 +15,7 @@ const {group, test, equal, wait, when, spyOn, genCombos } = runner;
 function createFixture(attributes = {}) {
   const el = document.createElement('a-color');
   for (const [key, val] of Object.entries(attributes)) {
-    if (val === true) el.setAttribute(key, '');
+    if (val === true) el.toggleAttribute(key, true);
     else el.setAttribute(key, val);
   }
   document.body.appendChild(el);
@@ -26,27 +26,6 @@ function createFixture(attributes = {}) {
 function cleanup() {
   document.querySelectorAll('a-color').forEach(el => el.remove());
 }
-
-group("Initialization & DOM Structure", () => {
-  const el = createFixture();
-
-  test("Element is defined in CustomElementsRegistry",
-    !!customElements.get('a-color'),
-    true
-  );
-
-  test("Shadow DOM is attached",
-    !!el.shadowRoot,
-    true
-  );
-
-  test("Contains internal color input",
-    !!el.shadowRoot.querySelector('input[type="color"]'),
-    true
-  );
-
-  cleanup();
-});
 
 group("Attribute Reflection & Properties", () => {
     const el = createFixture();

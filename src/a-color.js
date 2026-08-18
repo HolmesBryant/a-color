@@ -57,14 +57,12 @@ class AColor extends HTMLElement {
 
   #name;
 
-  #required = false;
-
   /**
    * The current color value.
    * @private
    * @type {string|undefined}
    */
-  #value;
+  #value = "#000000";
 
   // -- Private Properties ---
 
@@ -109,12 +107,12 @@ class AColor extends HTMLElement {
   static observedAttributes = [
     'alpha',
     'colormodel',
+    'debug',
     'defer',
     'disabled',
     'form',
     'list',
     'name',
-    'required',
     'value'
   ];
 
@@ -130,23 +128,11 @@ class AColor extends HTMLElement {
   static {
     this.template.innerHTML = `
       <style>
-        :host {
-          border: 1px solid lime;
-          height: auto;
-          min-height: 25px;
-        }
-
-        input {
-          height:100%;
-        }
-
-        input:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
+        :host {align-items: stretch; display: inline flex; }
+        input {display: block; cursor:pointer; height: auto; min-height: 27px; }
+        input:disabled {opacity: 0.5; cursor: not-allowed; }
       </style>
       <input part="input" type="color" />
-
       <slot></slot>
     `;
   }
@@ -182,7 +168,7 @@ class AColor extends HTMLElement {
       break;
 
     case 'colormodel':
-      this.#colormodel = newval;
+      this.#colormodel = (newval) ? newval : undefined;
 
       if (this.#connected) {
         this.#value = this.#updateInputValue(this.#value);
@@ -190,8 +176,13 @@ class AColor extends HTMLElement {
       }
       break;
 
+    case 'debug':
+      this.debug = this.hasAttribute('debug');
+      break;
+
     case 'defer':
       this.#defer = this.hasAttribute('defer');
+      if (this.id === 'demo') console.log('defer', this.#defer)
       break;
 
     case 'disabled':
@@ -200,9 +191,14 @@ class AColor extends HTMLElement {
       break;
 
     case 'form':
-      this.#form = newval;
-      this.#input.setAttribute('form', newval);
-      if (this.#connected) {
+      this.#form = (newval) ? newval : undefined;
+      if (this.#form) {
+        this.#input.setAttribute('form', newval);
+      } else {
+        this.#input.removeAttribute('form');
+      }
+
+      if (this.#connected && this.#form) {
         const form = document.getElementById(newval);
         if (!form || !(form instanceof HTMLFormElement)) {
           console.warn(`No form having id "${newval}" was found in the document.`);
@@ -211,21 +207,26 @@ class AColor extends HTMLElement {
       break;
 
     case 'list':
-      this.#list = newval;
-      this.#input.setAttribute('list', newval);
+      this.#list = (newval) ? newval : undefined;
+      if (this.#list) {
+        this.#input.setAttribute('list', newval);
+      } else {
+        this.#input.removeAttribute('list');
+      }
       break;
 
     case 'name':
-      this.#name = newval;
-      this.#input.name = newval;
-      break;
-
-    case 'required':
-      this.#required = this.hasAttribute('required');
-      this.#input.toggleAttribute('required', this.#required);
+      this.#name = (newval) ? newval : undefined;
+      if (this.#name) {
+        this.#input.name = newval;
+      } else {
+        this.#input.removeAttribute('name');
+      }
       break;
 
     case 'value':
+      if (!newval) newval = '#000000';
+
       if (this.#connected) {
         this.#value = this.#updateInputValue(newval);
       } else {
@@ -252,20 +253,16 @@ class AColor extends HTMLElement {
       this.form = form?.id;
     }
 
-    if (this.#value) {
-      this.#originalValue = this.#value;
-      this.#updateInputValue(this.#value);
+    this.#originalValue = this.#value;
+    this.#updateInputValue(this.#value);
 
-      if (this.#internals.form) {
-        this.#resetController = new AbortController();
-        this.#internals.form.addEventListener('reset', event => {
-          console.log(this.#originalValue)
-          this.#updateInputValue(this.#originalValue);
-          globalThis[abindUpdate]?.(this, 'value', this.#originalValue);
-        }, { signal: this.#resetController.signal });
-      }
+    if (this.#internals.form) {
+      this.#resetController = new AbortController();
+      this.#internals.form.addEventListener('reset', event => {
+        this.#updateInputValue(this.#originalValue);
+        globalThis[abindUpdate]?.(this, 'value', this.#originalValue);
+      }, { signal: this.#resetController.signal });
     }
-
 
     this.#addListeners();
     this.#connected = true;
@@ -303,8 +300,6 @@ class AColor extends HTMLElement {
       elems.forEach( elem => {
         const datalist = (elem instanceof HTMLDataListElement) ? elem : elem.querySelector('datalist');
         if (datalist instanceof HTMLDataListElement) {
-          if (!datalist.id) datalist.id = 'list';
-          this.list = datalist.id;
           this.shadowRoot.append(elem);
         }
       });
@@ -377,8 +372,8 @@ class AColor extends HTMLElement {
    * @param {Event} event - The DOM input event.
    */
   #handleInputEvent(event) {
-    const value = event.target.value;
     if (this.#defer) return;
+    const value = event.target.value;
     // Cancel any pending frame so only the latest input is processed
     if (this.#rafId) cancelAnimationFrame(this.#rafId);
 
@@ -400,7 +395,7 @@ class AColor extends HTMLElement {
    * @param {Event} event - The DOM change event.
    */
   #handleChangeEvent(event) {
-    this.#updateInputValue(event.target.value);
+    this.value = event.target.value;
     this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   }
 
@@ -451,38 +446,6 @@ class AColor extends HTMLElement {
 
   // --- Public Methods ---
 
-  /**
-   * Checks if the select element is valid according to HTML5 constraints.
-   * @returns {boolean} True if valid, false otherwise.
-   */
-  checkValidity() {
-    return this.#input.checkValidity();
-  }
-
-  /**
-   * Reports whether the form control will participate in form validation.
-   * @returns {boolean}
-   */
-  reportValidity() {
-    return this.#input.reportValidity();
-  }
-
-  /**
-   * Sets a custom validation message for the element.
-   * If invalid, displays the message in the browser's UI.
-   * @param {string} str - The custom error message to display.
-   * @returns {boolean} True if successful, false on error.
-   */
-  setCustomValidity(str) {
-    try {
-      this.#input.setCustomValidity(str);
-      return true;
-    } catch (error) {
-      console.error(error);
-      return false;
-    }
-  }
-
   showPicker() {
     this.#input.showPicker();
   }
@@ -498,7 +461,13 @@ class AColor extends HTMLElement {
    * @type {string}
    */
   get colormodel() { return this.#colormodel; }
-  set colormodel(value) { this.setAttribute('colormodel', value); }
+  set colormodel(value) {
+    if (value == null || value === false) {
+      this.removeAttribute('colormodel')
+    } else {
+      this.setAttribute('colormodel', value);
+    }
+  }
 
   /**
    * Gets or sets the defer mode.
@@ -507,40 +476,44 @@ class AColor extends HTMLElement {
    */
   get defer() { return this.#defer; }
   set defer(value) {
-    value = value !== 'false' && value !== false;
-    this.toggleAttribute('defer', value);
+    this.toggleAttribute('defer', value != null && value !== false);
   }
 
   get disabled() { return this.#disabled }
   set disabled(value) { this.toggleAttribute('disabled', value != null && value !== false) }
 
   get form() { return this.#internals.form }
-  set form(value) { this.setAttribute('form', value) }
+  set form(value) {
+    if (value == null || value === false) {
+      this.removeAttribute('form');
+    } else {
+      this.setAttribute('form', value);
+    }
+  }
 
   get list() { return this.#list }
-  set list(value) { this.setAttribute('list', value) }
+  set list(value) {
+    if (value == null || value === false) {
+      this.removeAttribute('list');
+    } else {
+      this.setAttribute('list', value);
+    }
+  }
 
   get lists() { return [...this.shadowRoot.querySelectorAll('datalist')] }
 
   get internals() { return this.#internals }
 
   get name() { return this.#name }
-  set name(value) { this.setAttribute('name', value) }
-
-  get properties() {
-    const props = [];
-    AColor.observedAttributes.forEach( prop => {
-      const name = prop;
-      props.push(`${prop} : ${this[prop]}`);
-    });
-
-    return JSON.stringify(props, null, 2);
+  set name(value) {
+    if (value == null || value === false) {
+      this.removeAttribute('name');
+    } else {
+      this.setAttribute('name', value);
+    }
   }
 
-  get required() { return this.#required }
-  set required(value) { this.toggleAttribute('required', value != null && value !== false ) }
-
-  get valid() { return this.#input.valid }
+  get valid() { return this.#input.validity.valid }
 
   get validity() { return this.#input.validity }
 
@@ -550,7 +523,13 @@ class AColor extends HTMLElement {
    * @type {string}
    */
   get value() { return this.#value; }
-  set value(value) { this.setAttribute('value', value); }
+  set value(value) {
+    if (value == null || value === false) {
+      this.removeAttribute('value');
+    } else {
+      this.setAttribute('value', value);
+    }
+  }
 }
 
 if (!customElements.get('a-color')) customElements.define('a-color', AColor);
