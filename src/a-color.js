@@ -1,10 +1,11 @@
 /**
- * @file A custom color picker component that extends the native input type="color".
- * @module AColor
- * Supports various color spaces (RGB, HSL, OKLCH, etc.) and event throttling.
+ * A custom color picker component that extends the native input type="color" and can convert between color models.
+ * Supports various color models (hex, rgb, hsl, hwb, lch, oklch) and event throttling.
+ *
+ * @file /src/a-color.js
  * @author Holmes Bryant <https://github.com/HolmesBryant>
  * @license GPL-3.0
- * @version 1.5
+ * @version 2.0
  */
 
 import { toHex, hexTo } from './color-conversion.js';
@@ -15,17 +16,17 @@ const abindUpdate = Symbol.for('abind.update');
  * A custom element that wraps a native `<input type="color">`.
  *
  * Features:
- * - Supports multiple color formats (hex, rgb, hsl, lch, oklch, etc.).
+ * - Supports multiple color formats (hex, rgb, hsl, hwb, lch, oklch).
  * - Automatically detects input format to maintain consistency.
  * - 'defer' attribute to suppress high-frequency input events during dragging.
- * - Integration with global `window.abind` for state management (optional).
+ * - Integration with global `a-bind` [https://github.com/HolmesBryant/a-bind] for state management (optional).
  *
  * @tagname a-color
  * @extends HTMLElement
  * @fires input - Fired when the color is changed (unless deferred).
  * @fires change - Fired when the user commits a color selection.
  */
-class AColor extends HTMLElement {
+export default class AColor extends HTMLElement {
   // --- Attributes ---
 
   /**

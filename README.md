@@ -185,6 +185,10 @@ Works in all modern browsers supporting Web Components (Custom Elements v1) and 
 
 ## Change Log
 
+- v2.0
+  - Breaking change: changed "colorspace" attribute to "colormodel".
+  - Fully implimented ElementInternals API for seamless form integration.
+
 - v1.5
   - Made integration with a-bind independant of global `update` variable.
   - Changed some dev dependencies

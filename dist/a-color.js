@@ -3,7 +3,7 @@
  * A set of functions to convert various css color values to hex and back.
  * @author Holmes Bryant <Holmes Bryant <https://github.com/HolmesBryant>
  * @license GPL-3.0
- * @version 1.5
+ * @version 1.0
  */
 
 const COLOR_NAMES = {
@@ -328,12 +328,13 @@ function hexToOklch(hex) {
 }
 
 /**
- * @file A custom color picker component that extends the native input type="color".
- * @module AColor
- * Supports various color spaces (RGB, HSL, OKLCH, etc.) and event throttling.
+ * A custom color picker component that extends the native input type="color" and can convert between color models.
+ * Supports various color models (hex, rgb, hsl, hwb, lch, oklch) and event throttling.
+ *
+ * @file /src/a-color.js
  * @author Holmes Bryant <https://github.com/HolmesBryant>
  * @license GPL-3.0
- * @version 1.5
+ * @version 2.0
  */
 
 
@@ -343,10 +344,10 @@ const abindUpdate = Symbol.for('abind.update');
  * A custom element that wraps a native `<input type="color">`.
  *
  * Features:
- * - Supports multiple color formats (hex, rgb, hsl, lch, oklch, etc.).
+ * - Supports multiple color formats (hex, rgb, hsl, hwb, lch, oklch).
  * - Automatically detects input format to maintain consistency.
  * - 'defer' attribute to suppress high-frequency input events during dragging.
- * - Integration with global `window.abind` for state management (optional).
+ * - Integration with global `a-bind` [https://github.com/HolmesBryant/a-bind] for state management (optional).
  *
  * @tagname a-color
  * @extends HTMLElement
@@ -357,11 +358,18 @@ class AColor extends HTMLElement {
   // --- Attributes ---
 
   /**
-   * The target color space for output values.
+   * represents the element's alpha attribute, indicating whether the color's alpha component can be manipulated by the user and does not have to be fully opaque.
+   * @private
+   * @type {boolean}
+   */
+  #alpha = false;
+
+  /**
+   * The target color space for output values ("hex", "rgb", "hsl", "hwb", "lch", "oklch").
    * @private
    * @type {string|undefined}
    */
-  #colorspace;
+  #colormodel;
 
   /**
    * Internal state for defer behavior.
@@ -370,12 +378,20 @@ class AColor extends HTMLElement {
    */
   #defer = false;
 
+  #disabled = false;
+
+  #form;
+
+  #list;
+
+  #name;
+
   /**
    * The current color value.
    * @private
    * @type {string|undefined}
    */
-  #value;
+  #value = "#000000";
 
   // -- Private Properties ---
 
@@ -386,6 +402,8 @@ class AColor extends HTMLElement {
    */
   #abortController;
 
+  #connected = false;
+
   /**
    * Reference to the shadow DOM input element.
    * @private
@@ -393,12 +411,18 @@ class AColor extends HTMLElement {
    */
   #input;
 
+  #internals;
+
+  #originalValue;
+
   /**
    * reference to latest requestAnimationFrame()
    * @private
    * @type {Number}
    */
   #rafId;
+
+  #resetController;
 
   // --- Static Public Properties ---
 
@@ -410,8 +434,14 @@ class AColor extends HTMLElement {
    * @type {string[]}
    */
   static observedAttributes = [
-    'colorspace',
+    'alpha',
+    'colormodel',
+    'debug',
     'defer',
+    'disabled',
+    'form',
+    'list',
+    'name',
     'value'
   ];
 
@@ -426,7 +456,13 @@ class AColor extends HTMLElement {
    */
   static {
     this.template.innerHTML = `
+      <style>
+        :host {align-items: stretch; display: inline flex; }
+        input {display: block; cursor:pointer; height: auto; min-height: 27px; }
+        input:disabled {opacity: 0.5; cursor: not-allowed; }
+      </style>
       <input part="input" type="color" />
+      <slot></slot>
     `;
   }
 
@@ -435,8 +471,10 @@ class AColor extends HTMLElement {
    */
   constructor() {
     super();
-    this.attachInternals();
     this.attachShadow({ mode: 'open', delegatesFocus: true });
+    this.shadowRoot.append(AColor.template.content.cloneNode(true));
+    this.#input = this.shadowRoot.querySelector('input');
+    this.#internals = this.attachInternals();
   }
 
   // --- Lifecycle ---
@@ -453,36 +491,75 @@ class AColor extends HTMLElement {
     if (oldval === newval) return;
 
     switch (attr) {
-    case 'colorspace':
-      this.#colorspace = newval;
+    case 'alpha':
+      this.#alpha = this.hasAttribute('alpha');
+      this.#input.toggleAttribute('alpha', this.#alpha);
+      break;
 
-      if (this.#value) {
-        try {
-          const currentHex = toHex(this.#value);
-          if (currentHex) {
-            const converted = hexTo(currentHex, newval);
-            // prevent recursion
-            if (converted !== this.#value) {
-              this.value = converted;
-            }
-          }
-        } catch (error) {
-          console.warn('Conversion failed during colorspace change', error, this);
-        }
+    case 'colormodel':
+      this.#colormodel = (newval) ? newval : undefined;
+
+      if (this.#connected) {
+        this.#value = this.#updateInputValue(this.#value);
+        globalThis[abindUpdate]?.(this, 'value', this.#value);
       }
+      break;
+
+    case 'debug':
+      this.debug = this.hasAttribute('debug');
       break;
 
     case 'defer':
       this.#defer = this.hasAttribute('defer');
+      if (this.id === 'demo') console.log('defer', this.#defer);
+      break;
+
+    case 'disabled':
+      this.#disabled = this.hasAttribute('disabled');
+      this.#input.disabled = this.#disabled;
+      break;
+
+    case 'form':
+      this.#form = (newval) ? newval : undefined;
+      if (this.#form) {
+        this.#input.setAttribute('form', newval);
+      } else {
+        this.#input.removeAttribute('form');
+      }
+
+      if (this.#connected && this.#form) {
+        const form = document.getElementById(newval);
+        if (!form || !(form instanceof HTMLFormElement)) {
+          console.warn(`No form having id "${newval}" was found in the document.`);
+        }
+      }
+      break;
+
+    case 'list':
+      this.#list = (newval) ? newval : undefined;
+      if (this.#list) {
+        this.#input.setAttribute('list', newval);
+      } else {
+        this.#input.removeAttribute('list');
+      }
+      break;
+
+    case 'name':
+      this.#name = (newval) ? newval : undefined;
+      if (this.#name) {
+        this.#input.name = newval;
+      } else {
+        this.#input.removeAttribute('name');
+      }
       break;
 
     case 'value':
-      const validHex = toHex(newval);
-      if (validHex) {
-        this.#value = newval;
-        this.#updateInputValue(newval);
+      if (!newval) newval = '#000000';
+
+      if (this.#connected) {
+        this.#value = this.#updateInputValue(newval);
       } else {
-        console.error("Error converting color.", this);
+        this.#value = newval;
       }
       break;
     }
@@ -495,27 +572,29 @@ class AColor extends HTMLElement {
    * Sets up the Shadow DOM and attaches event listeners.
    */
   connectedCallback() {
-    if (this.#abortController) this.#abortController.abort();
     this.#abortController = new AbortController();
-    const { signal } = this.#abortController;
+    const rando = 'a-color_' + Math.random().toString(36).slice(2, 8);
+    if (!this.#name) this.name = rando;
 
-    if (!this.shadowRoot.hasChildNodes()) {
-      this.shadowRoot.append(AColor.template.content.cloneNode(true));
+    if (!this.#form) {
+      const form = this.#internals.form;
+      if (form && !form.id) form.id = rando;
+      this.form = form?.id;
     }
 
-    this.#input = this.shadowRoot.querySelector('input');
+    this.#originalValue = this.#value;
+    this.#updateInputValue(this.#value);
 
-    if (this.hasAttribute('value')) {
-      this.#updateInputValue(this.getAttribute('value'));
+    if (this.#internals.form) {
+      this.#resetController = new AbortController();
+      this.#internals.form.addEventListener('reset', event => {
+        this.#updateInputValue(this.#originalValue);
+        globalThis[abindUpdate]?.(this, 'value', this.#originalValue);
+      }, { signal: this.#resetController.signal });
     }
 
-    this.#input.addEventListener('input', event => {
-      this.#handleInputEvent(event);
-    }, { signal });
-
-    this.#input.addEventListener('change', event => {
-      this.#handleChangeEvent(event);}
-      , { signal });
+    this.#addListeners();
+    this.#connected = true;
   }
 
   /**
@@ -527,19 +606,44 @@ class AColor extends HTMLElement {
       this.#abortController.abort();
       this.#abortController = null;
     }
+
+    if (this.#resetController) {
+      this.#resetController.abort();
+      this.#resetController = null;
+    }
   }
 
   // --- Private Methods ---
 
+  #addListeners() {
+    this.#input.addEventListener('input', event => {
+      this.#handleInputEvent(event);
+    }, { signal: this.#abortController.signal });
+
+    this.#input.addEventListener('change', event => {
+      this.#handleChangeEvent(event);
+    }, { signal: this.#abortController.signal });
+
+    this.shadowRoot.querySelector('slot').addEventListener('slotchange', event => {
+      const elems = event.target.assignedElements();
+      elems.forEach( elem => {
+        const datalist = (elem instanceof HTMLDataListElement) ? elem : elem.querySelector('datalist');
+        if (datalist instanceof HTMLDataListElement) {
+          this.shadowRoot.append(elem);
+        }
+      });
+    }, { signal: this.#abortController.signal });
+  }
+
   /**
-   * Converts a Hex color string to the target format (defined by colorspace or original format).
+   * Converts a Hex color string to the target format (defined by colormodel or original format).
    *
    * @private
    * @param {string} hexValue - The value from the internal color input (always hex).
    * @returns {string} The converted color string.
    */
   #convertColor(hexValue) {
-    let targetFormat = this.#colorspace;
+    let targetFormat = this.#colormodel;
     return hexTo(hexValue, targetFormat);
   }
 
@@ -563,6 +667,33 @@ class AColor extends HTMLElement {
   }
 
   /**
+   * Collects validity state flags (e.g., badInput, valueMissing) from the internal select element.
+   * @private
+   * @returns {Object<string, boolean>} An object mapping error names to their validity states.
+   */
+  #getInvalidStates() {
+    const results = {};
+    const errNames = [
+      'badInput',
+      'customError',
+      'patternMismatch',
+      'rangeOverflow',
+      'rangeUnderflow',
+      'stepMismatch',
+      'tooLong',
+      'tooShort',
+      'typeMismatch',
+      'valueMissing'
+    ];
+
+    errNames.forEach( name => {
+      if (this.#input.validity[name]) results[name] = this.#input.validity[name];
+    });
+
+    return results;
+  }
+
+  /**
    * Handles the 'input' event from the internal color picker (dragging).
    * Respects the 'defer' property to potentially suppress events.
    *
@@ -571,14 +702,12 @@ class AColor extends HTMLElement {
    */
   #handleInputEvent(event) {
     if (this.#defer) return;
-    const newHex = event.target.value;
+    const value = event.target.value;
     // Cancel any pending frame so only the latest input is processed
     if (this.#rafId) cancelAnimationFrame(this.#rafId);
 
     this.#rafId = requestAnimationFrame(() => {
-      const targetFormat = this.#colorspace || this.#detectFormat(this.#value) || 'hex';
-      const convertedValue = hexTo(newHex, targetFormat);
-      this.value = convertedValue;
+      this.#updateInputValue(value);
       this.dispatchEvent(
         new Event('input', { bubbles: true, composed: true })
       );
@@ -586,7 +715,6 @@ class AColor extends HTMLElement {
       this.#rafId = null;
     });
   }
-
 
   /**
    * Handles the 'change' event from the internal color picker (commit/release).
@@ -596,66 +724,83 @@ class AColor extends HTMLElement {
    * @param {Event} event - The DOM change event.
    */
   #handleChangeEvent(event) {
-    const newHex = event.target.value;
-    const targetFormat = this.#colorspace || this.#detectFormat(this.#value) || 'hex';
-    const convertedValue = hexTo(newHex, targetFormat);
-    this.value = convertedValue;
+    this.value = event.target.value;
     this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   }
 
   /**
+   * Sets validity state and message for the form-associated element using internals API.
+   * @private
+   * @param {Object<string, boolean>} flags - Validity state flags (e.g., badInput).
+   * @param {string} [message] - Custom validation message.
+   * @param {HTMLElement} [validationMessageTarget] - Element to associate the message with.
+   */
+  #setValidity(flags = {}) {
+    this.#internals.setValidity(flags, this.#input.validationMessage, this);
+  }
+
+  /**
    * Updates the internal input element's value.
-   * Enforces the `colorspace` if one is set; otherwise adapts to the incoming format.
+   * Enforces the `colormodel` if one is set; otherwise adapts to the incoming format.
    *
    * @private
    * @param {string} cssColor - The color string to set.
    */
   #updateInputValue(cssColor) {
     if (!cssColor) return;
-    try {
-      // Enforce specific colorspace if set
-      if (this.colorspace) {
-        const detected = this.#detectFormat(cssColor);
-        if (detected !== this.colorspace) {
-          const hex = toHex(cssColor);
-          if (hex) {
-            const converted = hexTo(hex, this.colorspace);
-            // Strict check to prevent infinite recursion loop
-            if (converted !== cssColor) {
-              this.value = converted;
-              return;
-            }
-          }
-        }
-      }
+    if (this.#disabled && this.#connected) return;
 
-      // Normal processing (Update Internal Input)
-      const hex = toHex(cssColor);
-      if (this.#input && hex && this.#input.value !== hex) {
-        this.#input.value = hex;
+    let converted, hex;
+
+    try {
+      const format = this.#detectFormat(cssColor);
+      hex = (format === 'hex')? cssColor : toHex(cssColor);
+    if (!hex) {
+      console.error(`Invalid color value (${cssColor}). Keeping old value.`, this);
+      return this.#value;
+    }
+
+      if (this.#colormodel && format !== this.#colormodel) {
+        // Enforce specific colormodel if set
+        converted = hexTo(hex, this.#colormodel);
+      } else {
+        converted = cssColor;
       }
     } catch (error) {
-      console.warn('Invalid color value. Keeping old value', error, this);
+      console.error(`Invalid color value (${cssColor}). Keeping old value.`, this);
     }
+
+    this.#input.value = hex;
+    this.#value = converted;
+    this.#internals.setFormValue(converted);
+    this.#setValidity(this.#getInvalidStates());
+    return converted;
+  }
+
+  // --- Public Methods ---
+
+  showPicker() {
+    this.#input.showPicker();
   }
 
   // --- Getters / Setters
+
+  get alpha() { return this.#alpha }
+  set alpha(value) { this.toggleAttribute('alpha', value != null && value !== false); }
 
   /**
    * Gets or sets the specific output color space (e.g., 'rgb', 'hsl').
    * If not set, the component attempts to preserve the format of the input value.
    * @type {string}
    */
-  get colorspace() { return this.#colorspace; }
-  set colorspace(value) { this.setAttribute('colorspace', value); }
-
-  /**
-   * Gets or sets the current color value.
-   * Reflects to the 'value' attribute.
-   * @type {string}
-   */
-  get value() { return this.#value; }
-  set value(value) { this.setAttribute('value', value); }
+  get colormodel() { return this.#colormodel; }
+  set colormodel(value) {
+    if (value == null || value === false) {
+      this.removeAttribute('colormodel');
+    } else {
+      this.setAttribute('colormodel', value);
+    }
+  }
 
   /**
    * Gets or sets the defer mode.
@@ -664,9 +809,62 @@ class AColor extends HTMLElement {
    */
   get defer() { return this.#defer; }
   set defer(value) {
-    value = value !== 'false' && value !== false;
-    this.toggleAttribute('defer', value);
+    this.toggleAttribute('defer', value != null && value !== false);
+  }
+
+  get disabled() { return this.#disabled }
+  set disabled(value) { this.toggleAttribute('disabled', value != null && value !== false); }
+
+  get form() { return this.#internals.form }
+  set form(value) {
+    if (value == null || value === false) {
+      this.removeAttribute('form');
+    } else {
+      this.setAttribute('form', value);
+    }
+  }
+
+  get list() { return this.#list }
+  set list(value) {
+    if (value == null || value === false) {
+      this.removeAttribute('list');
+    } else {
+      this.setAttribute('list', value);
+    }
+  }
+
+  get lists() { return [...this.shadowRoot.querySelectorAll('datalist')] }
+
+  get internals() { return this.#internals }
+
+  get name() { return this.#name }
+  set name(value) {
+    if (value == null || value === false) {
+      this.removeAttribute('name');
+    } else {
+      this.setAttribute('name', value);
+    }
+  }
+
+  get valid() { return this.#input.validity.valid }
+
+  get validity() { return this.#input.validity }
+
+  /**
+   * Gets or sets the current color value.
+   * Reflects to the 'value' attribute.
+   * @type {string}
+   */
+  get value() { return this.#value; }
+  set value(value) {
+    if (value == null || value === false) {
+      this.removeAttribute('value');
+    } else {
+      this.setAttribute('value', value);
+    }
   }
 }
 
 if (!customElements.get('a-color')) customElements.define('a-color', AColor);
+
+export { AColor as default };

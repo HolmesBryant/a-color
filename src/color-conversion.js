@@ -3,6 +3,7 @@
  * A set of functions to convert various css color values to hex and back.
  * @author Holmes Bryant <Holmes Bryant <https://github.com/HolmesBryant>
  * @license GPL-3.0
+ * @version 1.0
  */
 
 const COLOR_NAMES = {
