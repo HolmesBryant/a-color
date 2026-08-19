@@ -426,6 +426,10 @@ class AColor extends HTMLElement {
     try {
       const format = this.#detectFormat(cssColor);
       hex = (format === 'hex')? cssColor : toHex(cssColor);
+    if (!hex) {
+      console.error(`Invalid color value (${cssColor}). Keeping old value.`, this);
+      return this.#value;
+    }
 
       if (this.#colormodel && format !== this.#colormodel) {
         // Enforce specific colormodel if set

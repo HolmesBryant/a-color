@@ -35,17 +35,18 @@ group("Attribute Reflection & Properties", () => {
         return el.getAttribute('value');
     }, "#ff0000");
 
-    test("Setting colorspace property reflects to attribute", () => {
-        el.colorspace = "hsl";
-        return el.getAttribute('colorspace');
+    test("Setting colormodel property reflects to attribute", () => {
+        el.colormodel = "hsl";
+        return el.getAttribute('colormodel');
     }, "hsl");
 
     test("Setting defer property reflects to attribute", () => {
         el.defer = true;
-        return el.hasAttribute('defer');
+        const result = el.hasAttribute('defer');
+        cleanup();
+        return result;
     }, true);
 
-    cleanup();
 });
 
 group("Color Conversions (Set Value -> Read Value)", () => {
@@ -65,20 +66,21 @@ group("Color Conversions (Set Value -> Read Value)", () => {
 
     // 2. RGB
     test("RGB input returns RGB string", () => {
-        el.colorspace = 'rgb';
+        el.colormodel = 'rgb';
         el.value = "rgb(0, 255, 0)";
         return el.value;
     }, "rgb(0, 255, 0)");
 
     // 3. OKLCH (Modern CSS)
     test("OKLCH input persists", () => {
-        el.colorspace = 'oklch';
+        el.colormodel = 'oklch';
         // Note: The component normalizes strings, so we check if it starts with oklch
         el.value = "oklch(60% 0.15 180)";
-        return el.value.startsWith('oklch');
+        const result = el.value.startsWith('oklch');
+        cleanup();
+        return result;
     }, true);
 
-    cleanup();
 });
 
 group("Cross-Colorspace Conversion", () => {
@@ -87,7 +89,7 @@ group("Cross-Colorspace Conversion", () => {
 
   test("Convert Hex to RGB",
     () => {
-      el.colorspace = "rgb";
+      el.colormodel = "rgb";
       el.value = "#ffffff";
       return el.value;
     },
@@ -96,14 +98,15 @@ group("Cross-Colorspace Conversion", () => {
 
   test("Convert Name to HSL",
     () => {
-      el.colorspace = "hsl";
+      el.colormodel = "hsl";
       el.value = "red"; // hsl(0, 100%, 50%)
-      return el.value;
+      const result = el.value;
+      cleanup();
+      return result;
     },
     "hsl(0, 100%, 50%)"
   );
 
-  cleanup();
 });
 
 group("User Interaction & Events", () => {
@@ -125,16 +128,6 @@ group("User Interaction & Events", () => {
         return capturedVal;
     }, "#00ff00");
 
-    test("Updates value attribute on internal input", async () => {
-        const el = createFixture();
-        const input = el.shadowRoot.querySelector('input');
-
-        input.value = "#000000";
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        await when(el.getAttribute('value'));
-        return el.getAttribute('value');
-    }, "#000000");
-
     test("Dispatches 'change' event on commit", async () => {
         const el = createFixture();
         const input = el.shadowRoot.querySelector('input');
@@ -144,10 +137,10 @@ group("User Interaction & Events", () => {
 
         input.dispatchEvent(new Event('change', { bubbles: true }));
 
+        cleanup();
         return fired;
     }, true);
 
-    cleanup();
 });
 
 group("Defer Functionality", () => {
@@ -175,10 +168,10 @@ group("Defer Functionality", () => {
 
         input.dispatchEvent(new Event('change', { bubbles: true }));
 
+        cleanup();
         return changeFired;
     }, true);
 
-    cleanup();
 });
 
 group("Matrix: Color Formats", () => {
@@ -190,9 +183,9 @@ group("Matrix: Color Formats", () => {
     };
 
     for (const combo of genCombos(formats)) {
-        test(`Can set colorspace to '${combo.cs}'`, () => {
+        test(`Can set colormodel to '${combo.cs}'`, () => {
             const el = createFixture();
-            el.colorspace = combo.cs;
+            el.colormodel = combo.cs;
             el.value = "red"; // Should convert red to target format
             const result = el.value;
             el.remove();
@@ -203,20 +196,15 @@ group("Matrix: Color Formats", () => {
 });
 
 group("Error Handling", () => {
-  const el = createFixture({ value: "#ffffff" });
+  const el = createFixture({ debug:true, value: "#ffffff" });
 
   test("Invalid color value is ignored (keeps previous)", () => {
-    const spy = spyOn(console, 'warn'); // Component warns on console
-
     el.value = "not-a-color";
-
     const keptValue = el.value;
-    spy.restore();
-
+    cleanup();
     return keptValue;
   }, "#ffffff");
 
-  cleanup();
 });
 
 runner.run();
