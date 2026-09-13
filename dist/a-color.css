@@ -1,5 +1,2 @@
 a-color {}
-
-a-color::part(input) {
-	border-radius: 2px;
-}
+a-color::part(input) { border-radius: 2px }

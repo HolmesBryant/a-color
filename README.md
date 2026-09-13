@@ -120,7 +120,7 @@ Import the component into your JavaScript bundle or HTML file.
     - Type: string
     - Default: undefined
 
-    **NOTE** The result varies widely between browsers. In Chromium-based browsers, a popup appears containing a clickable color chip for each option in the datalist with a button at the bottom labeled "Other...", while in Firefox the "custom colors" area of the color picker will be populated with the colors defined in the datalist.
+    **NOTE** The result varies widely between browsers. For example, in Blink-based browsers (Chrome / Edge), a popup appears containing a clickable color chip for each option in the datalist with a button at the bottom labeled "Other...", while in Firefox the "custom colors" area of the color picker will be populated with the colors defined in the datalist.
 
     ```html
     <a-color list="custom-colors">
